@@ -61,6 +61,7 @@
     .other-specify {
       margin-left: 25px;
       margin-top: 8px;
+      flex: 1;
     }
     .other-specify input {
       width: 70%;
@@ -253,7 +254,8 @@
           const demo = allData.find(d => d.participant) || {};
           const trialData = {
             participant: demo.participant || '', auto_participant_id: autoParticipantID, age: demo.age || '', gender: demo.gender || '',
-            education: demo.education || '', handedness: demo.handedness || '', other_languages: demo.other_languages || '',
+            education: demo.education || '', handedness: demo.handedness || '', native_language: demo.native_language || '',
+            other_languages: demo.other_languages || '',
             list_assignment: listAssignment, key_mapping: keyMapping, block: blockName, trial_num: trialNum,
             sentence: item.sentence, question: item.question, correct_answer: item.correct, response: response, accuracy: isCorrect,
             reading_time: 5000, rt_from_question: data.rt
@@ -285,7 +287,7 @@
       choices: [' ']
     });
 
-    // Demographics – now with improved CSS layout
+    // Demographics with native language textbox and reordered languages
     timeline.push({
       type: jsPsychSurveyHtmlForm,
       preamble: '<h3>Participant Information</h3>',
@@ -312,27 +314,29 @@
             <div class="form-input"><select name="handedness" required><option value="">--Select--</option><option>Right-handed</option><option>Left-handed</option><option>Ambidextrous</option></select></div>
           </div>
           <div class="form-row">
+            <div class="form-label"><label>Native language:</label></div>
+            <div class="form-input"><input type="text" name="native_language" required placeholder="e.g., English, Arabic, French"></div>
+          </div>
+          <div class="form-row">
             <div class="form-label"><label>Other languages (select all):</label></div>
             <div class="form-checkbox-group">
-              <label><input type="checkbox" name="lang_english" value="English"> English</label>
-              <label><input type="checkbox" name="lang_amazigh" value="Amazigh"> Amazigh</label>
+              <label><input type="checkbox" name="lang_arabic" value="Arabic"> Arabic</label>
               <label><input type="checkbox" name="lang_moroccan_arabic" value="Moroccan Arabic"> Moroccan Arabic</label>
-              <label><input type="checkbox" name="lang_standard_arabic" value="Standard Arabic"> Standard Arabic</label>
+              <label><input type="checkbox" name="lang_amazigh" value="Amazigh"> Amazigh</label>
               <label><input type="checkbox" name="lang_french" value="French"> French</label>
+              <label><input type="checkbox" name="lang_english" value="English"> English</label>
               <label><input type="checkbox" name="lang_spanish" value="Spanish"> Spanish</label>
-              <label><input type="checkbox" name="lang_german" value="German"> German</label>
               <label><input type="checkbox" name="lang_other_check" value="other"> Other</label>
             </div>
           </div>
           <div class="other-specify" id="otherSpecifyDiv" style="display:none;">
-            <label>Please specify: <input type="text" name="lang_other_text" placeholder="e.g., Italian, Portuguese"></label>
+            <label>Please specify: <input type="text" name="lang_other_text" placeholder="e.g., Italian, Portuguese, German"></label>
           </div>
         </div>
         <script>
-          // Local script for showing/hiding other text field
           (function() {
-            const otherCheck = document.querySelector('input[name="lang_other_check"]');
-            const otherDiv = document.getElementById('otherSpecifyDiv');
+            var otherCheck = document.querySelector('input[name="lang_other_check"]');
+            var otherDiv = document.getElementById('otherSpecifyDiv');
             if (otherCheck) {
               otherCheck.addEventListener('change', function() { otherDiv.style.display = this.checked ? 'block' : 'none'; });
             }
@@ -341,22 +345,26 @@
       `,
       on_finish: (data) => {
         let languages = [];
-        if (data.response.lang_english) languages.push('English');
-        if (data.response.lang_amazigh) languages.push('Amazigh');
+        if (data.response.lang_arabic) languages.push('Arabic');
         if (data.response.lang_moroccan_arabic) languages.push('Moroccan Arabic');
-        if (data.response.lang_standard_arabic) languages.push('Standard Arabic');
+        if (data.response.lang_amazigh) languages.push('Amazigh');
         if (data.response.lang_french) languages.push('French');
+        if (data.response.lang_english) languages.push('English');
         if (data.response.lang_spanish) languages.push('Spanish');
-        if (data.response.lang_german) languages.push('German');
         if (data.response.lang_other_check) {
           if (data.response.lang_other_text) languages.push(`Other: ${data.response.lang_other_text}`);
           else languages.push('Other (unspecified)');
         }
         const otherLanguages = languages.join(', ');
         jsPsych.data.addProperties({
-          participant: data.response.participant, auto_participant_id: autoParticipantID,
-          age: data.response.age, gender: data.response.gender, education: data.response.education,
-          handedness: data.response.handedness, other_languages: otherLanguages
+          participant: data.response.participant,
+          auto_participant_id: autoParticipantID,
+          age: data.response.age,
+          gender: data.response.gender,
+          education: data.response.education,
+          handedness: data.response.handedness,
+          native_language: data.response.native_language,
+          other_languages: otherLanguages
         });
       }
     });
