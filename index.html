@@ -15,9 +15,64 @@
     .feedback-correct { color: green; font-size: 32px; font-weight: bold; text-align: center; margin-top: 40vh; }
     .feedback-incorrect { color: red; font-size: 32px; font-weight: bold; text-align: center; margin-top: 40vh; }
     .counter { position: fixed; top: 10px; right: 20px; background-color: rgba(0,0,0,0.7); color: white; padding: 8px 12px; border-radius: 20px; font-size: 14px; font-weight: bold; z-index: 10000; pointer-events: none; }
-    .lang-group { margin: 10px 0; }
-    .lang-group label { margin-right: 15px; white-space: nowrap; }
-    .other-specify { margin-left: 25px; margin-top: 5px; }
+
+    /* Improved demographic form styling */
+    .demographics-form {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #f9f9f9;
+      padding: 20px 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .form-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .form-label {
+      width: 200px;
+      text-align: right;
+      padding-right: 15px;
+      font-weight: bold;
+      color: #333;
+    }
+    .form-input {
+      flex: 1;
+      min-width: 200px;
+    }
+    .form-input input, .form-input select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .form-checkbox-group {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, auto));
+      gap: 8px 15px;
+    }
+    .form-checkbox-group label {
+      white-space: nowrap;
+    }
+    .other-specify {
+      margin-left: 25px;
+      margin-top: 8px;
+    }
+    .other-specify input {
+      width: 70%;
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    @media (max-width: 700px) {
+      .form-row { flex-direction: column; align-items: stretch; }
+      .form-label { text-align: left; width: auto; padding-bottom: 5px; }
+      .form-checkbox-group { grid-template-columns: repeat(2, 1fr); }
+    }
   </style>
 </head>
 <body>
@@ -67,7 +122,7 @@
       }).catch(err => console.error("Failed to send data:", err));
     }
 
-    // ==================== STIMULI ====================
+    // ==================== STIMULI (same as before) ====================
     const practiceTrials = [
       { sentence: "The manager of the employees who was reading a book stayed late.", question: "Who was reading a book? FIRST noun (manager) or SECOND noun (employees)?", correct: "NP1" },
       { sentence: "The supervisor of the workers who were arguing in the hallway called security.", question: "Who was arguing in the hallway? FIRST noun (supervisor) or SECOND noun (workers)?", correct: "NP2" },
@@ -162,25 +217,13 @@
       for (let i = 0; i < pairs.length; i++) {
         const [high, low, q, ch, cl] = pairs[i];
         let sentence, correct;
-        if (listAssignment === 'A') {
-          sentence = i < 12 ? high : low;
-          correct = i < 12 ? ch : cl;
-        } else {
-          sentence = i < 12 ? low : high;
-          correct = i < 12 ? cl : ch;
-        }
+        if (listAssignment === 'A') { sentence = i < 12 ? high : low; correct = i < 12 ? ch : cl; }
+        else { sentence = i < 12 ? low : high; correct = i < 12 ? cl : ch; }
         main.push({ sentence, question: q, correct, type: 'pair' });
       }
-      for (let i = 0; i < ambiguousItems.length; i++) {
-        main.push({ sentence: ambiguousItems[i][0], question: ambiguousItems[i][1], correct: null, type: 'ambiguous' });
-      }
-      for (let i = 0; i < fillers.length; i++) {
-        main.push({ sentence: fillers[i][0], question: fillers[i][1], correct: fillers[i][2], type: 'filler' });
-      }
-      for (let i = main.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [main[i], main[j]] = [main[j], main[i]];
-      }
+      for (let i = 0; i < ambiguousItems.length; i++) main.push({ sentence: ambiguousItems[i][0], question: ambiguousItems[i][1], correct: null, type: 'ambiguous' });
+      for (let i = 0; i < fillers.length; i++) main.push({ sentence: fillers[i][0], question: fillers[i][1], correct: fillers[i][2], type: 'filler' });
+      for (let i = main.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [main[i], main[j]] = [main[j], main[i]]; }
       return main;
     }
     const mainTrials = buildMainTrials();
@@ -200,10 +243,7 @@
         type: jsPsychHtmlKeyboardResponse,
         stimulus: `<div style="font-size:32px; text-align:center;">${item.question}</div>`,
         choices: ['c', 'm'],
-        prompt: () => {
-          if (keyMapping === 'original') return '<p style="font-size:24px;">Press <strong>C</strong> for FIRST noun (NP1) &nbsp;&nbsp; Press <strong>M</strong> for SECOND noun (NP2)</p>';
-          else return '<p style="font-size:24px;">Press <strong>C</strong> for SECOND noun (NP2) &nbsp;&nbsp; Press <strong>M</strong> for FIRST noun (NP1)</p>';
-        },
+        prompt: () => (keyMapping === 'original') ? '<p style="font-size:24px;">Press <strong>C</strong> for FIRST noun (NP1) &nbsp;&nbsp; Press <strong>M</strong> for SECOND noun (NP2)</p>' : '<p style="font-size:24px;">Press <strong>C</strong> for SECOND noun (NP2) &nbsp;&nbsp; Press <strong>M</strong> for FIRST noun (NP1)</p>',
         data: { trial_type: 'question' },
         on_finish: (data) => {
           let response = data.response === 'c' ? 'NP1' : 'NP2';
@@ -245,38 +285,58 @@
       choices: [' ']
     });
 
-    // Demographics with all fields
+    // Demographics – now with improved CSS layout
     timeline.push({
       type: jsPsychSurveyHtmlForm,
       preamble: '<h3>Participant Information</h3>',
       html: `
-        <label>Your Participant ID (you can type any code): <input type="text" name="participant" required></label><br><br>
-        <label>Age: <input type="number" name="age" required></label><br><br>
-        <label>Gender: <select name="gender" required><option>Female</option><option>Male</option><option>Non-binary</option></select></label><br><br>
-        <label>Highest academic level: <input type="text" name="education" required></label><br><br>
-        <label>Handedness: <select name="handedness" required><option value="">--Select--</option><option>Right-handed</option><option>Left-handed</option><option>Ambidextrous</option></select></label><br><br>
-        <label>Other languages you speak (select all that apply):</label><br>
-        <div class="lang-group">
-          <label><input type="checkbox" name="lang_english" value="English"> English</label>
-          <label><input type="checkbox" name="lang_amazigh" value="Amazigh"> Amazigh</label>
-          <label><input type="checkbox" name="lang_moroccan_arabic" value="Moroccan Arabic"> Moroccan Arabic</label>
-          <label><input type="checkbox" name="lang_standard_arabic" value="Standard Arabic"> Standard Arabic</label>
-          <label><input type="checkbox" name="lang_french" value="French"> French</label>
-          <label><input type="checkbox" name="lang_spanish" value="Spanish"> Spanish</label>
-          <label><input type="checkbox" name="lang_german" value="German"> German</label>
-          <label><input type="checkbox" name="lang_other_check" value="other"> Other</label>
-        </div>
-        <div class="other-specify" id="otherSpecifyDiv" style="display:none;">
-          <label>Please specify: <input type="text" name="lang_other_text" placeholder="e.g., Italian, Portuguese"></label>
+        <div class="demographics-form">
+          <div class="form-row">
+            <div class="form-label"><label>Participant ID:</label></div>
+            <div class="form-input"><input type="text" name="participant" required placeholder="any code"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-label"><label>Age:</label></div>
+            <div class="form-input"><input type="number" name="age" required></div>
+          </div>
+          <div class="form-row">
+            <div class="form-label"><label>Gender:</label></div>
+            <div class="form-input"><select name="gender" required><option value="">--Select--</option><option>Female</option><option>Male</option><option>Non-binary</option></select></div>
+          </div>
+          <div class="form-row">
+            <div class="form-label"><label>Highest academic level:</label></div>
+            <div class="form-input"><input type="text" name="education" required placeholder="e.g., Bachelor, Master, PhD"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-label"><label>Handedness:</label></div>
+            <div class="form-input"><select name="handedness" required><option value="">--Select--</option><option>Right-handed</option><option>Left-handed</option><option>Ambidextrous</option></select></div>
+          </div>
+          <div class="form-row">
+            <div class="form-label"><label>Other languages (select all):</label></div>
+            <div class="form-checkbox-group">
+              <label><input type="checkbox" name="lang_english" value="English"> English</label>
+              <label><input type="checkbox" name="lang_amazigh" value="Amazigh"> Amazigh</label>
+              <label><input type="checkbox" name="lang_moroccan_arabic" value="Moroccan Arabic"> Moroccan Arabic</label>
+              <label><input type="checkbox" name="lang_standard_arabic" value="Standard Arabic"> Standard Arabic</label>
+              <label><input type="checkbox" name="lang_french" value="French"> French</label>
+              <label><input type="checkbox" name="lang_spanish" value="Spanish"> Spanish</label>
+              <label><input type="checkbox" name="lang_german" value="German"> German</label>
+              <label><input type="checkbox" name="lang_other_check" value="other"> Other</label>
+            </div>
+          </div>
+          <div class="other-specify" id="otherSpecifyDiv" style="display:none;">
+            <label>Please specify: <input type="text" name="lang_other_text" placeholder="e.g., Italian, Portuguese"></label>
+          </div>
         </div>
         <script>
-          document.addEventListener('DOMContentLoaded', function() {
+          // Local script for showing/hiding other text field
+          (function() {
             const otherCheck = document.querySelector('input[name="lang_other_check"]');
             const otherDiv = document.getElementById('otherSpecifyDiv');
             if (otherCheck) {
               otherCheck.addEventListener('change', function() { otherDiv.style.display = this.checked ? 'block' : 'none'; });
             }
-          });
+          })();
         <\/script>
       `,
       on_finish: (data) => {
