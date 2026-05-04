@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Relative Clause Attachment Experiment</title>
+  <script src="https://unpkg.com/jspsych@7.3.4/dist/index.browser.min.js"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-html-form@1.0.2"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-call-function@1.1.1"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-instructions@1.1.3"></script>
+  <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet">
+  <style>
+    .jspsych-display-element {
+      background-color: lightgray;
+      font-family: Arial, sans-serif;
+    }
+    .fixation { font-size: 50px; text-align: center; }
+    .feedback-correct { color: green; font-size: 32px; font-weight: bold; text-align: center; margin-top: 40vh; }
+    .feedback-incorrect { color: red; font-size: 32px; font-weight: bold; text-align: center; margin-top: 40vh; }
+  </style>
+</head>
+<body>
+<div id="loading" style="text-align:center; margin-top:50px;">Loading experiment...</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("loading").style.display = "none";
+
+    // ==================== AUTO PARTICIPANT ID ====================
+    const autoParticipantID = `auto_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    console.log(`Auto-generated participant ID: ${autoParticipantID}`);
+
+    // ==================== GOOGLE SHEETS DATA ENDPOINT ====================
+    const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxiy2Aord467MBRlvkA0pcFsci_iKBOE6PN-E30afC5rKeK1CkuO8R_XLtWH1gCyOkh6g/exec";
+
+    // Function to send one trial row to Google Sheets
+    function sendToGoogleSheets(dataRow) {
+      fetch(GOOGLE_SHEETS_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dataRow)
+      }).catch(err => console.error("Failed to send data:", err));
+    }
+
+    // ==================== ESCAPE HANDLER ====================
+    let jsPsychInstance = null;
+    let experimentAborted = false;
+    function globalEscapeHandler(e) {
+      if (e.key === 'Escape' && !experimentAborted) {
+        e.preventDefault();
+        experimentAborted = true;
+        if (jsPsychInstance) jsPsychInstance.abortExperiment('Aborted by user');
+        const el = document.querySelector('.jspsych-display-element');
+        if (el) el.innerHTML = '<div style="text-align:center; margin-top:50px;"><h2>Experiment ended</h2><p>You have terminated the experiment. Thank you.</p></div>';
+        alert("Experiment ended by pressing ESC.");
+        document.removeEventListener('keydown', globalEscapeHandler);
+      }
+    }
+    document.addEventListener('keydown', globalEscapeHandler);
+
+    // ==================== STIMULI DEFINITIONS ====================
+    const practiceTrials = [
+      { sentence: "The manager of the employees who was reading a book stayed late.", question: "Who was reading a book? FIRST noun (manager) or SECOND noun (employees)?", correct: "NP1" },
+      { sentence: "The supervisor of the workers who were arguing in the hallway called security.", question: "Who was arguing in the hallway? FIRST noun (supervisor) or SECOND noun (workers)?", correct: "NP2" },
+      { sentence: "The baker who baked the bread won an award.", question: "Who baked the bread? FIRST noun (baker) or SECOND noun (bread)?", correct: "NP1" },
+      { sentence: "The cat chased the mouse that was hiding under the couch.", question: "What was hiding under the couch? FIRST noun (cat) or SECOND noun (mouse)?", correct: "NP2" }
+    ];
+
+    const pairs = [
+      ["The girl asked the driver of the players who was talking to an old woman.", "The girl asked the driver of the players who were talking to an old woman.", "Who was talking to an old woman? FIRST noun (driver) or SECOND noun (players)?", "NP1", "NP2"],
+      ["The father of the kids who found himself broke lost his job.", "The father of the kids who found themselves broke lost his job.", "Who was broke? FIRST noun (father) or SECOND noun (kids)?", "NP1", "NP2"],
+      ["The chairman of the writers who calls himself a wealthy person signed the contract.", "The chairman of the writers who call themselves wealthy persons signed the contract.", "Who was a wealthy person? FIRST noun (chairman) or SECOND noun (writers)?", "NP1", "NP2"],
+      ["The cousins of Jane who were living in the U.S. visited us this weekend.", "The cousins of Jane who was living in the U.S. visited us this weekend.", "Who was living in the U.S.? FIRST noun (cousins) or SECOND noun (Jane)?", "NP1", "NP2"],
+      ["The pilot of the travelers who was resting complained about the weather.", "The pilot of the travelers who were resting complained about the weather.", "Who was resting? FIRST noun (pilot) or SECOND noun (travelers)?", "NP1", "NP2"],
+      ["Emma met the sister of the boys who was enjoying playing by the river.", "Emma met the sister of the boys who were enjoying playing by the river.", "Who was enjoying playing by the river? FIRST noun (sister) or SECOND noun (boys)?", "NP1", "NP2"],
+      ["The doctor examined the mother of the boy who had injured herself with the knife.", "The doctor examined the mother of the boy who had injured himself with the knife.", "Who was injured with the knife? FIRST noun (mother) or SECOND noun (boy)?", "NP1", "NP2"],
+      ["The director praised the teacher of the students who was writing the reports.", "The director praised the teacher of the students who were writing the reports.", "Who was writing the reports? FIRST noun (teacher) or SECOND noun (students)?", "NP1", "NP2"],
+      ["The crowd welcomed the daughter of Mr. Bill who introduced herself to the team.", "The crowd welcomed the daughter of Mr. Bill who introduced himself to the team.", "Who introduced themselves to the team? FIRST noun (daughter) or SECOND noun (Mr. Bill)?", "NP1", "NP2"],
+      ["The uncle of the waitress who washed himself in the kitchen lost his key.", "The uncle of the waitress who washed herself in the kitchen lost his key.", "Who washed in the kitchen? FIRST noun (uncle) or SECOND noun (waitress)?", "NP1", "NP2"],
+      ["The director of the actors who was wearing a hat enjoyed the show.", "The director of the actors who were wearing hats enjoyed the show.", "Who was wearing a hat? FIRST noun (director) or SECOND noun (actors)?", "NP1", "NP2"],
+      ["Mary met the daughter of the man who herself had a car accident.", "Mary met the daughter of the man who himself had a car accident.", "Who had a car accident? FIRST noun (daughter) or SECOND noun (man)?", "NP1", "NP2"],
+      ["The man called the assistant of the employees who were on the phone.", "The man called the assistant of the employees who was on the phone.", "Who was on the phone? FIRST noun (assistant) or SECOND noun (employees)?", "NP2", "NP1"],
+      ["The lawyer of the criminals who were in the courtroom failed to escape.", "The lawyer of the criminals who was in the courtroom failed to escape.", "Who was in the courtroom? FIRST noun (lawyer) or SECOND noun (criminals)?", "NP2", "NP1"],
+      ["The restaurant hired the chefs of the prince who proved himself to be wealthy.", "The restaurant hired the chefs of the prince who proved themselves to be wealthy.", "Who proved to be wealthy? FIRST noun (chefs) or SECOND noun (prince)?", "NP2", "NP1"],
+      ["The friends of the artist who was living abroad came yesterday to the party.", "The friends of the artist who were living abroad came yesterday to the party.", "Who was living abroad? FIRST noun (friends) or SECOND noun (artist)?", "NP2", "NP1"],
+      ["The journalist ignored the ministers of the president who was waving at the crowd.", "The journalist ignored the ministers of the president who were waving at the crowd.", "Who was waving at the crowd? FIRST noun (ministers) or SECOND noun (president)?", "NP2", "NP1"],
+      ["The aunt of the boy who had locked himself in the bedroom visited us today.", "The aunt of the boy who had locked herself in the bedroom visited us today.", "Who was locked in the bedroom? FIRST noun (aunt) or SECOND noun (boy)?", "NP2", "NP1"],
+      ["I saw the fans of the celebrity who himself refused to leave the building.", "I saw the fans of the celebrity who themselves refused to leave the building.", "Who refused to leave the building? FIRST noun (fans) or SECOND noun (celebrity)?", "NP2", "NP1"],
+      ["The sisters of the hairdresser who was living nearby will move to another city.", "The sisters of the hairdresser who were living nearby will move to another city.", "Who was living nearby? FIRST noun (sisters) or SECOND noun (hairdresser)?", "NP2", "NP1"],
+      ["John met the husband of the chairwoman who stayed by herself in the office.", "John met the husband of the chairwoman who stayed by himself in the office.", "Who stayed in the office? FIRST noun (husband) or SECOND noun (chairwoman)?", "NP2", "NP1"],
+      ["The wife of the neighbour who promised himself to work hard came today.", "The wife of the neighbour who promised herself to work hard came today.", "Who promised to work hard? FIRST noun (wife) or SECOND noun (neighbour)?", "NP2", "NP1"],
+      ["The lawyer of the woman who tried to drown herself in the river retired.", "The lawyer of the woman who tried to drown himself in the river retired.", "Who tried to drown in the river? FIRST noun (lawyer) or SECOND noun (woman)?", "NP2", "NP1"],
+      ["The colleagues of the inspector who was looking serious agreed to a meeting soon.", "The colleagues of the inspector who were looking serious agreed to a meeting soon.", "Who was looking serious? FIRST noun (colleagues) or SECOND noun (inspector)?", "NP2", "NP1"]
+    ];
+
+    const ambiguousItems = [
+      ["Someone shot the servant of the actress who was on the balcony.", "Who was on the balcony? FIRST noun (servant) or SECOND noun (actress)?"],
+      ["The brother of the teacher who was tired went home.", "Who was tired? FIRST noun (brother) or SECOND noun (teacher)?"],
+      ["The son of the guest who was nervous spoke.", "Who was nervous? FIRST noun (son) or SECOND noun (guest)?"],
+      ["The partner of the director who was late apologized.", "Who was late? FIRST noun (partner) or SECOND noun (director)?"],
+      ["The teammate of the student who was hardworking arrived.", "Who was hardworking? FIRST noun (teammate) or SECOND noun (student)?"],
+      ["I talked to the manager of the writer who was holding a bag.", "Who was holding a bag? FIRST noun (manager) or SECOND noun (writer)?"],
+      ["The neighbor of the doctor who was rich moved away.", "Who was rich? FIRST noun (neighbor) or SECOND noun (doctor)?"],
+      ["The cousin of the athlete who was travelling rested.", "Who was travelling? FIRST noun (cousin) or SECOND noun (athlete)?"],
+      ["The colleague of the manager who was promoted celebrated.", "Who was promoted? FIRST noun (colleague) or SECOND noun (manager)?"],
+      ["The friend of the student who was absent called.", "Who was absent? FIRST noun (friend) or SECOND noun (student)?"],
+      ["The friend of the person who lost the key finally found it.", "Who lost the key? FIRST noun (friend) or SECOND noun (person)?"],
+      ["The brother of the actor who was at the party arrived early.", "Who was at the party? FIRST noun (brother) or SECOND noun (actor)?"],
+      ["The secretary of the boss who was waiting looked anxious.", "Who was waiting? FIRST noun (secretary) or SECOND noun (boss)?"],
+      ["The mother of the child who was playing looked happy.", "Who was playing? FIRST noun (mother) or SECOND noun (child)?"],
+      ["The assistant of the professor who was grading exams stayed late.", "Who was grading exams? FIRST noun (assistant) or SECOND noun (professor)?"],
+      ["The nurse of the doctor who was checking the patient left the room quickly.", "Who was checking the patient? FIRST noun (nurse) or SECOND noun (doctor)?"],
+      ["The editor of the journalist who was nominated received a prize.", "Who was nominated? FIRST noun (editor) or SECOND noun (journalist)?"],
+      ["The coach of the athlete who was training for the Olympics felt proud.", "Who was training for the Olympics? FIRST noun (coach) or SECOND noun (athlete)?"],
+      ["The employee of the manager who was attending the meeting arrived on time.", "Who was attending the meeting? FIRST noun (employee) or SECOND noun (manager)?"],
+      ["The teacher of the student who was waiting in the hall called home.", "Who was waiting in the hall? FIRST noun (teacher) or SECOND noun (student)?"],
+      ["The assistant of the manager who was typing a report left early.", "Who was typing a report? FIRST noun (assistant) or SECOND noun (manager)?"],
+      ["The friend of the neighbor who was walking the dog waved hello.", "Who was walking the dog? FIRST noun (friend) or SECOND noun (neighbor)?"],
+      ["The son of the politician who was looking at his watch felt nervous.", "Who was looking at his watch? FIRST noun (son) or SECOND noun (politician)?"],
+      ["The cousin of the artist who was drinking coffee arrived late.", "Who was drinking coffee? FIRST noun (cousin) or SECOND noun (artist)?"]
+    ];
+
+    const fillers = [
+      ["The teacher scolded the student who was late for class.", "Who was late for class? FIRST noun (teacher) or SECOND noun (student)?", "NP2"],
+      ["The dog chased the cat that ran into the garden.", "Who ran into the garden? FIRST noun (dog) or SECOND noun (cat)?", "NP2"],
+      ["The policeman helped the old woman who had lost her wallet.", "Who lost her wallet? FIRST noun (policeman) or SECOND noun (woman)?", "NP2"],
+      ["The chef tasted the soup that was too salty.", "What was too salty? FIRST noun (chef) or SECOND noun (soup)?", "NP2"],
+      ["The child hugged the grandmother who was crying.", "Who was crying? FIRST noun (child) or SECOND noun (grandmother)?", "NP2"],
+      ["The painter admired the landscape that reminded him of home.", "What reminded him of home? FIRST noun (painter) or SECOND noun (landscape)?", "NP2"],
+      ["The customer complained to the cashier who made a mistake.", "Who made a mistake? FIRST noun (customer) or SECOND noun (cashier)?", "NP2"],
+      ["The bird ate the worm that was wriggling on the ground.", "What was wriggling on the ground? FIRST noun (bird) or SECOND noun (worm)?", "NP2"],
+      ["The officer stopped the driver who ran a red light.", "Who ran a red light? FIRST noun (officer) or SECOND noun (driver)?", "NP2"],
+      ["The nurse called the patient who was feeling dizzy.", "Who was feeling dizzy? FIRST noun (nurse) or SECOND noun (patient)?", "NP2"],
+      ["The gardener watered the flowers that were wilting in the sun.", "What were wilting in the sun? FIRST noun (gardener) or SECOND noun (flowers)?", "NP2"],
+      ["The singer thanked the guitarist who played a beautiful solo.", "Who played a beautiful solo? FIRST noun (singer) or SECOND noun (guitarist)?", "NP2"],
+      ["The cat watched the mouse that stole some cheese.", "Who stole some cheese? FIRST noun (cat) or SECOND noun (mouse)?", "NP2"],
+      ["The father carried the daughter who was too tired to walk.", "Who was too tired to walk? FIRST noun (father) or SECOND noun (daughter)?", "NP2"],
+      ["The driver avoided the cyclist who swerved suddenly.", "Who swerved suddenly? FIRST noun (driver) or SECOND noun (cyclist)?", "NP2"],
+      ["The baker sold the bread that was freshly baked.", "What was freshly baked? FIRST noun (baker) or SECOND noun (bread)?", "NP2"],
+      ["The journalist interviewed the politician who had just won the election.", "Who had just won the election? FIRST noun (journalist) or SECOND noun (politician)?", "NP2"],
+      ["The child kicked the ball that rolled into the street.", "What rolled into the street? FIRST noun (child) or SECOND noun (ball)?", "NP2"],
+      ["The waiter served the couple who ordered the special dish.", "Who ordered the special dish? FIRST noun (waiter) or SECOND noun (couple)?", "NP2"],
+      ["The neighbor heard the noise that came from the basement.", "What came from the basement? FIRST noun (neighbor) or SECOND noun (noise)?", "NP2"]
+    ];
+
+    // ==================== COUNTERBALANCING ====================
+    let listAssignment = Math.random() < 0.5 ? 'A' : 'B';
+    let keyMapping = Math.random() < 0.5 ? 'original' : 'swapped';
+    console.log(`List ${listAssignment}, Keys ${keyMapping}`);
+
+    function buildMainTrials() {
+      let main = [];
+      for (let i = 0; i < pairs.length; i++) {
+        const [high, low, q, ch, cl] = pairs[i];
+        let sentence, correct;
+        if (listAssignment === 'A') {
+          sentence = i < 12 ? high : low;
+          correct = i < 12 ? ch : cl;
+        } else {
+          sentence = i < 12 ? low : high;
+          correct = i < 12 ? cl : ch;
+        }
+        main.push({ sentence, question: q, correct, type: 'pair' });
+      }
+      for (let i = 0; i < ambiguousItems.length; i++) {
+        main.push({ sentence: ambiguousItems[i][0], question: ambiguousItems[i][1], correct: null, type: 'ambiguous' });
+      }
+      for (let i = 0; i < fillers.length; i++) {
+        main.push({ sentence: fillers[i][0], question: fillers[i][1], correct: fillers[i][2], type: 'filler' });
+      }
+      for (let i = main.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [main[i], main[j]] = [main[j], main[i]];
+      }
+      return main;
+    }
+    const mainTrials = buildMainTrials();
+
+    function getInstructionsText() {
+      const base = `You will read sentences followed by a question. Each sentence disappears after 5 seconds.\n\nAfter the sentence, a question will ask who (or what) the relative clause refers to.\n\n`;
+      const keyText = (keyMapping === 'original') 
+        ? `Press <strong>C</strong> for the FIRST noun (NP1).\nPress <strong>M</strong> for the SECOND noun (NP2).`
+        : `Press <strong>C</strong> for the SECOND noun (NP2).\nPress <strong>M</strong> for the FIRST noun (NP1).`;
+      return `<h2>Instructions</h2><p style="font-size:28px; white-space:pre-line;">${base}${keyText}\n\nPress SPACE to begin practice.</p>`;
+    }
+
+    function createTrialComponents(item, trialNum, blockName) {
+      const fixation = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: '<div class="fixation">+</div>',
+        trial_duration: 500,
+        choices: "NO_KEYS",
+        response_ends_trial: false,
+        data: { trial_type: 'fixation' }
+      };
+      const sentence = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `<div style="font-size:36px; text-align:center;">${item.sentence}</div>`,
+        trial_duration: 5000,
+        choices: "NO_KEYS",
+        response_ends_trial: false,
+        data: { trial_type: 'sentence', reading_time: 5000 }
+      };
+      const question = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `<div style="font-size:32px; text-align:center;">${item.question}</div>`,
+        choices: ['c', 'm'],
+        prompt: () => {
+          if (keyMapping === 'original') {
+            return '<p style="font-size:24px;">Press <strong>C</strong> for FIRST noun (NP1) &nbsp;&nbsp; Press <strong>M</strong> for SECOND noun (NP2)</p>';
+          } else {
+            return '<p style="font-size:24px;">Press <strong>C</strong> for SECOND noun (NP2) &nbsp;&nbsp; Press <strong>M</strong> for FIRST noun (NP1)</p>';
+          }
+        },
+        data: { trial_type: 'question' },
+        on_finish: (data) => {
+          if (experimentAborted) return;
+          let response = data.response === 'c' ? 'NP1' : 'NP2';
+          if (keyMapping === 'swapped') response = response === 'NP1' ? 'NP2' : 'NP1';
+          const isCorrect = (item.correct !== null) ? (response === item.correct) : null;
+          const allData = jsPsych.data.get().values();
+          const demo = allData.find(d => d.participant) || {};
+          const trialData = {
+            participant: demo.participant || '',
+            auto_participant_id: autoParticipantID,
+            age: demo.age || '',
+            gender: demo.gender || '',
+            education: demo.education || '',
+            native_language: demo.native_language || '',
+            list_assignment: listAssignment,
+            key_mapping: keyMapping,
+            block: blockName,
+            trial_num: trialNum,
+            sentence: item.sentence,
+            question: item.question,
+            correct_answer: item.correct,
+            response: response,
+            accuracy: isCorrect,
+            reading_time: 5000,
+            rt_from_question: data.rt
+          };
+          Object.assign(data, trialData);
+          window.lastResponse = { correct: isCorrect, correctAnswer: item.correct };
+          sendToGoogleSheets(trialData);
+        }
+      };
+      return [fixation, sentence, question];
+    }
+
+    function createFeedbackTrial() {
+      return {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: () => {
+          const last = window.lastResponse;
+          if (!last) return '<div>---</div>';
+          if (last.correct) {
+            return '<div class="feedback-correct">✓ Correct!</div>';
+          } else {
+            return `<div class="feedback-incorrect">✗ Incorrect. Correct answer: ${last.correctAnswer}.</div>`;
+          }
+        },
+        trial_duration: 1500,
+        choices: "NO_KEYS",
+        response_ends_trial: false,
+        data: { trial_type: 'feedback' }
+      };
+    }
+
+    // ==================== BUILD TIMELINE ====================
+    let timeline = [];
+
+    timeline.push({
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `<div style="width:700px; margin:0 auto;"><h3>CONSENT & WELCOME</h3><p>You are invited to participate in a study on sentence comprehension.</p><p>The task involves reading sentences and answering questions.</p><p>No personal identifying information will be collected.</p><p>You may withdraw at any time by pressing ESC.</p><p>Do you agree to participate?</p><p>Press SPACE to continue. ESC to exit.</p></div>`,
+      choices: [' ']
+    });
+
+    timeline.push({
+      type: jsPsychSurveyHtmlForm,
+      preamble: '<h3>Participant Information</h3>',
+      html: `
+        <label>Your Participant ID (you can type any code): <input type="text" name="participant" required></label><br><br>
+        <label>Age: <input type="number" name="age" required></label><br><br>
+        <label>Gender: <select name="gender" required><option>Female</option><option>Male</option><option>Non-binary</option></select></label><br><br>
+        <label>Education: <input type="text" name="education" required></label><br><br>
+        <label>Native Language: <input type="text" name="native_language" required placeholder="e.g., English"></label>
+      `,
+      on_finish: (data) => {
+        jsPsych.data.addProperties({
+          participant: data.response.participant,
+          auto_participant_id: autoParticipantID,
+          age: data.response.age,
+          gender: data.response.gender,
+          education: data.response.education,
+          native_language: data.response.native_language
+        });
+      }
+    });
+
+    timeline.push({
+      type: jsPsychCallFunction,
+      func: () => {
+        jsPsych.data.addProperties({ list_assignment: listAssignment, key_mapping: keyMapping });
+      }
+    });
+
+    timeline.push({
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `<div style="font-size:28px; text-align:center; max-width:800px; margin:0 auto;">${getInstructionsText()}</div>`,
+      choices: [' ']
+    });
+
+    timeline.push({
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: '<div style="font-size:36px; text-align:center;">Practice session<br><br>Press SPACE to begin.</div>',
+      choices: [' ']
+    });
+
+    for (let i = 0; i < practiceTrials.length; i++) {
+      timeline.push(...createTrialComponents(practiceTrials[i], i+1, 'practice'));
+      timeline.push(createFeedbackTrial());
+      timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div>---</div>', trial_duration: 200, choices: "NO_KEYS", response_ends_trial: false });
+    }
+
+    timeline.push({
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: '<div style="font-size:36px;">Practice complete.<br><br>Press SPACE to start the main experiment.</div>',
+      choices: [' ']
+    });
+
+    for (let i = 0; i < mainTrials.length; i++) {
+      timeline.push(...createTrialComponents(mainTrials[i], i+1, 'main'));
+      timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div>---</div>', trial_duration: 200, choices: "NO_KEYS", response_ends_trial: false });
+    }
+
+    // Final screen – data already sent per trial, just show thank you
+    timeline.push({
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: '<div style="font-size:48px;">Experiment complete!<br><br>Thank you for participating.<br><br>Your data has been saved automatically.<br><br>You may close this window.</div>',
+      choices: [' ']
+    });
+
+    // ==================== RUN EXPERIMENT ====================
+    jsPsychInstance = initJsPsych({
+      on_finish: () => {
+        if (!experimentAborted) document.removeEventListener('keydown', globalEscapeHandler);
+      }
+    });
+    window.jsPsych = jsPsychInstance;
+    jsPsychInstance.run(timeline);
+    console.log(`Experiment started. Auto ID: ${autoParticipantID}`);
+  });
+</script>
+</body>
+</html>
