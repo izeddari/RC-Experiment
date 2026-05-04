@@ -123,7 +123,8 @@
       }).catch(err => console.error("Failed to send data:", err));
     }
 
-    // ==================== STIMULI (same as before) ====================
+    // ==================== STIMULI ====================
+    // Practice trials (unchanged)
     const practiceTrials = [
       { sentence: "The manager of the employees who was reading a book stayed late.", question: "Who was reading a book? FIRST noun (manager) or SECOND noun (employees)?", correct: "NP1" },
       { sentence: "The supervisor of the workers who were arguing in the hallway called security.", question: "Who was arguing in the hallway? FIRST noun (supervisor) or SECOND noun (workers)?", correct: "NP2" },
@@ -131,33 +132,107 @@
       { sentence: "The cat chased the mouse that was hiding under the couch.", question: "What was hiding under the couch? FIRST noun (cat) or SECOND noun (mouse)?", correct: "NP2" }
     ];
 
+    // === UPDATED MAIN EXPERIMENTAL PAIRS (24 pairs) ===
     const pairs = [
-      ["The girl asked the driver of the players who was talking to an old woman.", "The girl asked the driver of the players who were talking to an old woman.", "Who was talking to an old woman? FIRST noun (driver) or SECOND noun (players)?", "NP1", "NP2"],
-      ["The father of the kids who found himself broke lost his job.", "The father of the kids who found themselves broke lost his job.", "Who was broke? FIRST noun (father) or SECOND noun (kids)?", "NP1", "NP2"],
-      ["The chairman of the writers who calls himself a wealthy person signed the contract.", "The chairman of the writers who call themselves wealthy persons signed the contract.", "Who was a wealthy person? FIRST noun (chairman) or SECOND noun (writers)?", "NP1", "NP2"],
-      ["The cousins of Jane who were living in the U.S. visited us this weekend.", "The cousins of Jane who was living in the U.S. visited us this weekend.", "Who was living in the U.S.? FIRST noun (cousins) or SECOND noun (Jane)?", "NP1", "NP2"],
-      ["The pilot of the travelers who was resting complained about the weather.", "The pilot of the travelers who were resting complained about the weather.", "Who was resting? FIRST noun (pilot) or SECOND noun (travelers)?", "NP1", "NP2"],
-      ["Emma met the sister of the boys who was enjoying playing by the river.", "Emma met the sister of the boys who were enjoying playing by the river.", "Who was enjoying playing by the river? FIRST noun (sister) or SECOND noun (boys)?", "NP1", "NP2"],
-      ["The doctor examined the mother of the boy who had injured herself with the knife.", "The doctor examined the mother of the boy who had injured himself with the knife.", "Who was injured with the knife? FIRST noun (mother) or SECOND noun (boy)?", "NP1", "NP2"],
-      ["The director praised the teacher of the students who was writing the reports.", "The director praised the teacher of the students who were writing the reports.", "Who was writing the reports? FIRST noun (teacher) or SECOND noun (students)?", "NP1", "NP2"],
-      ["The crowd welcomed the daughter of Mr. Bill who introduced herself to the team.", "The crowd welcomed the daughter of Mr. Bill who introduced himself to the team.", "Who introduced themselves to the team? FIRST noun (daughter) or SECOND noun (Mr. Bill)?", "NP1", "NP2"],
-      ["The uncle of the waitress who washed himself in the kitchen lost his key.", "The uncle of the waitress who washed herself in the kitchen lost his key.", "Who washed in the kitchen? FIRST noun (uncle) or SECOND noun (waitress)?", "NP1", "NP2"],
-      ["The director of the actors who was wearing a hat enjoyed the show.", "The director of the actors who were wearing hats enjoyed the show.", "Who was wearing a hat? FIRST noun (director) or SECOND noun (actors)?", "NP1", "NP2"],
-      ["Mary met the daughter of the man who herself had a car accident.", "Mary met the daughter of the man who himself had a car accident.", "Who had a car accident? FIRST noun (daughter) or SECOND noun (man)?", "NP1", "NP2"],
-      ["The man called the assistant of the employees who were on the phone.", "The man called the assistant of the employees who was on the phone.", "Who was on the phone? FIRST noun (assistant) or SECOND noun (employees)?", "NP2", "NP1"],
-      ["The lawyer of the criminals who were in the courtroom failed to escape.", "The lawyer of the criminals who was in the courtroom failed to escape.", "Who was in the courtroom? FIRST noun (lawyer) or SECOND noun (criminals)?", "NP2", "NP1"],
-      ["The restaurant hired the chefs of the prince who proved himself to be wealthy.", "The restaurant hired the chefs of the prince who proved themselves to be wealthy.", "Who proved to be wealthy? FIRST noun (chefs) or SECOND noun (prince)?", "NP2", "NP1"],
-      ["The friends of the artist who was living abroad came yesterday to the party.", "The friends of the artist who were living abroad came yesterday to the party.", "Who was living abroad? FIRST noun (friends) or SECOND noun (artist)?", "NP2", "NP1"],
-      ["The journalist ignored the ministers of the president who was waving at the crowd.", "The journalist ignored the ministers of the president who were waving at the crowd.", "Who was waving at the crowd? FIRST noun (ministers) or SECOND noun (president)?", "NP2", "NP1"],
-      ["The aunt of the boy who had locked himself in the bedroom visited us today.", "The aunt of the boy who had locked herself in the bedroom visited us today.", "Who was locked in the bedroom? FIRST noun (aunt) or SECOND noun (boy)?", "NP2", "NP1"],
-      ["I saw the fans of the celebrity who himself refused to leave the building.", "I saw the fans of the celebrity who themselves refused to leave the building.", "Who refused to leave the building? FIRST noun (fans) or SECOND noun (celebrity)?", "NP2", "NP1"],
-      ["The sisters of the hairdresser who was living nearby will move to another city.", "The sisters of the hairdresser who were living nearby will move to another city.", "Who was living nearby? FIRST noun (sisters) or SECOND noun (hairdresser)?", "NP2", "NP1"],
-      ["John met the husband of the chairwoman who stayed by herself in the office.", "John met the husband of the chairwoman who stayed by himself in the office.", "Who stayed in the office? FIRST noun (husband) or SECOND noun (chairwoman)?", "NP2", "NP1"],
-      ["The wife of the neighbour who promised himself to work hard came today.", "The wife of the neighbour who promised herself to work hard came today.", "Who promised to work hard? FIRST noun (wife) or SECOND noun (neighbour)?", "NP2", "NP1"],
-      ["The lawyer of the woman who tried to drown herself in the river retired.", "The lawyer of the woman who tried to drown himself in the river retired.", "Who tried to drown in the river? FIRST noun (lawyer) or SECOND noun (woman)?", "NP2", "NP1"],
-      ["The colleagues of the inspector who was looking serious agreed to a meeting soon.", "The colleagues of the inspector who were looking serious agreed to a meeting soon.", "Who was looking serious? FIRST noun (colleagues) or SECOND noun (inspector)?", "NP2", "NP1"]
+      // Pair 1
+      ["The girl asked the driver of the players who was talking to an old woman.",
+       "The girl asked the driver of the players who were talking to an old woman.",
+       "Who was talking to an old woman? FIRST noun (driver) or SECOND noun (players)?", "NP1", "NP2"],
+      // Pair 2
+      ["The father of the kids who found himself broke lost his job.",
+       "The father of the kids who found themselves broke lost his job.",
+       "Who was broke? FIRST noun (father) or SECOND noun (kids)?", "NP1", "NP2"],
+      // Pair 3
+      ["The chairman of the writers who was sitting in the front row signed the contract.",
+       "The chairman of the writers who were sitting in the front row signed the contract.",
+       "Who was sitting in the front row? FIRST noun (chairman) or SECOND noun (writers)?", "NP1", "NP2"],
+      // Pair 4
+      ["The cousins of Jane who were living in the U.S. visited us this weekend.",
+       "The cousins of Jane who was living in the U.S. visited us this weekend.",
+       "Who was living in the U.S.? FIRST noun (cousins) or SECOND noun (Jane)?", "NP1", "NP2"],
+      // Pair 5
+      ["The pilot of the travelers who was resting complained about the weather.",
+       "The pilot of the travelers who were resting complained about the weather.",
+       "Who was resting? FIRST noun (pilot) or SECOND noun (travelers)?", "NP1", "NP2"],
+      // Pair 6
+      ["Emma met the sister of the boys who was enjoying playing by the river.",
+       "Emma met the sister of the boys who were enjoying playing by the river.",
+       "Who was enjoying playing by the river? FIRST noun (sister) or SECOND noun (boys)?", "NP1", "NP2"],
+      // Pair 7
+      ["The doctor examined the mother of the boy who had injured herself with the knife.",
+       "The doctor examined the mother of the boy who had injured himself with the knife.",
+       "Who was injured with the knife? FIRST noun (mother) or SECOND noun (boy)?", "NP1", "NP2"],
+      // Pair 8
+      ["The director praised the teacher of the students who was writing the reports.",
+       "The director praised the teacher of the students who were writing the reports.",
+       "Who was writing the reports? FIRST noun (teacher) or SECOND noun (students)?", "NP1", "NP2"],
+      // Pair 9
+      ["The crowd welcomed the daughter of Mr. Bill who introduced herself to the team.",
+       "The crowd welcomed the daughter of Mr. Bill who introduced himself to the team.",
+       "Who introduced themselves to the team? FIRST noun (daughter) or SECOND noun (Mr. Bill)?", "NP1", "NP2"],
+      // Pair 10
+      ["The uncle of the waitress who washed himself in the kitchen lost his key.",
+       "The uncle of the waitress who washed herself in the kitchen lost his key.",
+       "Who washed in the kitchen? FIRST noun (uncle) or SECOND noun (waitress)?", "NP1", "NP2"],
+      // Pair 11
+      ["The director of the actors who was wearing a hat enjoyed the show.",
+       "The director of the actors who were wearing hats enjoyed the show.",
+       "Who was wearing a hat? FIRST noun (director) or SECOND noun (actors)?", "NP1", "NP2"],
+      // Pair 12
+      ["Mary met the daughter of the man who herself had a car accident.",
+       "Mary met the daughter of the man who himself had a car accident.",
+       "Who had a car accident? FIRST noun (daughter) or SECOND noun (man)?", "NP1", "NP2"],
+      // Pair 13 (HA correct NP2, LA correct NP1)
+      ["The man called the assistant of the employees who were on the phone.",
+       "The man called the assistant of the employees who was on the phone.",
+       "Who was on the phone? FIRST noun (assistant) or SECOND noun (employees)?", "NP2", "NP1"],
+      // Pair 14
+      ["The lawyer of the criminals who were in the courtroom failed to escape.",
+       "The lawyer of the criminals who was in the courtroom failed to escape.",
+       "Who was in the courtroom? FIRST noun (lawyer) or SECOND noun (criminals)?", "NP2", "NP1"],
+      // Pair 15
+      ["The restaurant hired the chefs of the prince who was waiting in the hallway.",
+       "The restaurant hired the chefs of the prince who were waiting in the hallway.",
+       "Who was waiting in the hallway? FIRST noun (chefs) or SECOND noun (prince)?", "NP2", "NP1"],
+      // Pair 16
+      ["The friends of the artist who was living abroad came yesterday to the party.",
+       "The friends of the artist who were living abroad came yesterday to the party.",
+       "Who was living abroad? FIRST noun (friends) or SECOND noun (artist)?", "NP2", "NP1"],
+      // Pair 17
+      ["The journalist ignored the ministers of the president who was waving at the crowd.",
+       "The journalist ignored the ministers of the president who were waving at the crowd.",
+       "Who was waving at the crowd? FIRST noun (ministers) or SECOND noun (president)?", "NP2", "NP1"],
+      // Pair 18
+      ["The aunt of the boy who had locked himself in the bedroom visited us today.",
+       "The aunt of the boy who had locked herself in the bedroom visited us today.",
+       "Who was locked in the bedroom? FIRST noun (aunt) or SECOND noun (boy)?", "NP2", "NP1"],
+      // Pair 19
+      ["I saw the fans of the celebrity who himself refused to leave the building.",
+       "I saw the fans of the celebrity who themselves refused to leave the building.",
+       "Who refused to leave the building? FIRST noun (fans) or SECOND noun (celebrity)?", "NP2", "NP1"],
+      // Pair 20
+      ["The sisters of the hairdresser who was living nearby will move to another city.",
+       "The sisters of the hairdresser who were living nearby will move to another city.",
+       "Who was living nearby? FIRST noun (sisters) or SECOND noun (hairdresser)?", "NP2", "NP1"],
+      // Pair 21
+      ["John met the husband of the chairwoman who stayed by herself in the office.",
+       "John met the husband of the chairwoman who stayed by himself in the office.",
+       "Who stayed in the office? FIRST noun (husband) or SECOND noun (chairwoman)?", "NP2", "NP1"],
+      // Pair 22
+      ["The wife of the neighbour who promised himself to work hard came today.",
+       "The wife of the neighbour who promised herself to work hard came today.",
+       "Who promised to work hard? FIRST noun (wife) or SECOND noun (neighbour)?", "NP2", "NP1"],
+      // Pair 23
+      ["The lawyer of the woman who tried to drown herself in the river retired.",
+       "The lawyer of the woman who tried to drown himself in the river retired.",
+       "Who tried to drown in the river? FIRST noun (lawyer) or SECOND noun (woman)?", "NP2", "NP1"],
+      // Pair 24
+      ["The colleagues of the inspector who was looking serious agreed to a meeting soon.",
+       "The colleagues of the inspector who were looking serious agreed to a meeting soon.",
+       "Who was looking serious? FIRST noun (colleagues) or SECOND noun (inspector)?", "NP2", "NP1"]
     ];
 
+    // === UPDATED AMBIGUOUS ITEMS (24 items) ===
     const ambiguousItems = [
       ["Someone shot the servant of the actress who was on the balcony.", "Who was on the balcony? FIRST noun (servant) or SECOND noun (actress)?"],
       ["The brother of the teacher who was tired went home.", "Who was tired? FIRST noun (brother) or SECOND noun (teacher)?"],
@@ -165,26 +240,27 @@
       ["The partner of the director who was late apologized.", "Who was late? FIRST noun (partner) or SECOND noun (director)?"],
       ["The teammate of the student who was hardworking arrived.", "Who was hardworking? FIRST noun (teammate) or SECOND noun (student)?"],
       ["I talked to the manager of the writer who was holding a bag.", "Who was holding a bag? FIRST noun (manager) or SECOND noun (writer)?"],
-      ["The neighbor of the doctor who was rich moved away.", "Who was rich? FIRST noun (neighbor) or SECOND noun (doctor)?"],
+      ["The neighbor of the doctor who was standing by the fence moved away.", "Who was standing by the fence? FIRST noun (neighbor) or SECOND noun (doctor)?"],
       ["The cousin of the athlete who was travelling rested.", "Who was travelling? FIRST noun (cousin) or SECOND noun (athlete)?"],
       ["The colleague of the manager who was promoted celebrated.", "Who was promoted? FIRST noun (colleague) or SECOND noun (manager)?"],
       ["The friend of the student who was absent called.", "Who was absent? FIRST noun (friend) or SECOND noun (student)?"],
-      ["The friend of the person who lost the key finally found it.", "Who lost the key? FIRST noun (friend) or SECOND noun (person)?"],
+      ["The friend of the person who was standing by the gate finally found it.", "Who was standing by the gate? FIRST noun (friend) or SECOND noun (person)?"],
       ["The brother of the actor who was at the party arrived early.", "Who was at the party? FIRST noun (brother) or SECOND noun (actor)?"],
-      ["The secretary of the boss who was waiting looked anxious.", "Who was waiting? FIRST noun (secretary) or SECOND noun (boss)?"],
+      ["The secretary of the boss who was wearing a grey suit looked anxious.", "Who was wearing a grey suit? FIRST noun (secretary) or SECOND noun (boss)?"],
       ["The mother of the child who was playing looked happy.", "Who was playing? FIRST noun (mother) or SECOND noun (child)?"],
-      ["The assistant of the professor who was grading exams stayed late.", "Who was grading exams? FIRST noun (assistant) or SECOND noun (professor)?"],
-      ["The nurse of the doctor who was checking the patient left the room quickly.", "Who was checking the patient? FIRST noun (nurse) or SECOND noun (doctor)?"],
+      ["The assistant of the professor who was looking at the clock stayed late.", "Who was looking at the clock? FIRST noun (assistant) or SECOND noun (professor)?"],
+      ["The nurse of the doctor who was near the main entrance left the room quickly.", "Who was near the main entrance? FIRST noun (nurse) or SECOND noun (doctor)?"],
       ["The editor of the journalist who was nominated received a prize.", "Who was nominated? FIRST noun (editor) or SECOND noun (journalist)?"],
-      ["The coach of the athlete who was training for the Olympics felt proud.", "Who was training for the Olympics? FIRST noun (coach) or SECOND noun (athlete)?"],
+      ["The coach of the athlete who was wearing a blue sweatshirt felt proud.", "Who was wearing a blue sweatshirt? FIRST noun (coach) or SECOND noun (athlete)?"],
       ["The employee of the manager who was attending the meeting arrived on time.", "Who was attending the meeting? FIRST noun (employee) or SECOND noun (manager)?"],
       ["The teacher of the student who was waiting in the hall called home.", "Who was waiting in the hall? FIRST noun (teacher) or SECOND noun (student)?"],
-      ["The assistant of the manager who was typing a report left early.", "Who was typing a report? FIRST noun (assistant) or SECOND noun (manager)?"],
-      ["The friend of the neighbor who was walking the dog waved hello.", "Who was walking the dog? FIRST noun (friend) or SECOND noun (neighbor)?"],
+      ["The assistant of the manager who was in the breakroom left early.", "Who was in the breakroom? FIRST noun (assistant) or SECOND noun (manager)?"],
+      ["The friend of the neighbor who lived on the first floor waved hello.", "Who lived on the first floor? FIRST noun (friend) or SECOND noun (neighbor)?"],
       ["The son of the politician who was looking at his watch felt nervous.", "Who was looking at his watch? FIRST noun (son) or SECOND noun (politician)?"],
       ["The cousin of the artist who was drinking coffee arrived late.", "Who was drinking coffee? FIRST noun (cousin) or SECOND noun (artist)?"]
     ];
 
+    // Fillers (unchanged)
     const fillers = [
       ["The teacher scolded the student who was late for class.", "Who was late for class? FIRST noun (teacher) or SECOND noun (student)?", "NP2"],
       ["The dog chased the cat that ran into the garden.", "Who ran into the garden? FIRST noun (dog) or SECOND noun (cat)?", "NP2"],
@@ -216,15 +292,23 @@
     function buildMainTrials() {
       let main = [];
       for (let i = 0; i < pairs.length; i++) {
-        const [high, low, q, ch, cl] = pairs[i];
+        const [high, low, q, correctHigh, correctLow] = pairs[i];
         let sentence, correct;
-        if (listAssignment === 'A') { sentence = i < 12 ? high : low; correct = i < 12 ? ch : cl; }
-        else { sentence = i < 12 ? low : high; correct = i < 12 ? cl : ch; }
+        if (listAssignment === 'A') { sentence = i < 12 ? high : low; correct = i < 12 ? correctHigh : correctLow; }
+        else { sentence = i < 12 ? low : high; correct = i < 12 ? correctLow : correctHigh; }
         main.push({ sentence, question: q, correct, type: 'pair' });
       }
-      for (let i = 0; i < ambiguousItems.length; i++) main.push({ sentence: ambiguousItems[i][0], question: ambiguousItems[i][1], correct: null, type: 'ambiguous' });
-      for (let i = 0; i < fillers.length; i++) main.push({ sentence: fillers[i][0], question: fillers[i][1], correct: fillers[i][2], type: 'filler' });
-      for (let i = main.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [main[i], main[j]] = [main[j], main[i]]; }
+      for (let i = 0; i < ambiguousItems.length; i++) {
+        main.push({ sentence: ambiguousItems[i][0], question: ambiguousItems[i][1], correct: null, type: 'ambiguous' });
+      }
+      for (let i = 0; i < fillers.length; i++) {
+        main.push({ sentence: fillers[i][0], question: fillers[i][1], correct: fillers[i][2], type: 'filler' });
+      }
+      // shuffle main trials
+      for (let i = main.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [main[i], main[j]] = [main[j], main[i]];
+      }
       return main;
     }
     const mainTrials = buildMainTrials();
@@ -287,7 +371,7 @@
       choices: [' ']
     });
 
-    // Demographics with native language textbox and reordered languages
+    // Demographics (same as before)
     timeline.push({
       type: jsPsychSurveyHtmlForm,
       preamble: '<h3>Participant Information</h3>',
