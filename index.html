@@ -18,22 +18,19 @@
     .fixation { font-size: 50px; text-align: center; }
     .feedback-correct { color: green; font-size: 32px; font-weight: bold; text-align: center; margin-top: 40vh; }
     .feedback-incorrect { color: red; font-size: 32px; font-weight: bold; text-align: center; margin-top: 40vh; }
-    /* Robust counter styling */
-    .experiment-counter {
+    .counter {
       position: fixed;
-      top: 15px;
+      top: 10px;
       right: 20px;
-      background-color: rgba(0,0,0,0.8);
+      background-color: rgba(0,0,0,0.7);
       color: white;
-      padding: 8px 15px;
-      border-radius: 25px;
-      font-size: 16px;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 14px;
       font-weight: bold;
       font-family: Arial, sans-serif;
-      z-index: 999999;
+      z-index: 10000;
       pointer-events: none;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-      border: 1px solid rgba(255,255,255,0.3);
     }
   </style>
 </head>
@@ -57,41 +54,27 @@
       throw new Error("Mobile device detected – experiment aborted");
     }
 
-    // ==================== SIMPLE TEXT COUNTER (robust) ====================
-    let totalQuestions = 4 + 68; // 4 practice + 68 main
+    // ==================== SIMPLE TEXT COUNTER ====================
+    const totalQuestions = 4 + 68; // 4 practice + 68 main
     let questionsAnswered = 0;
     let counterDiv = null;
 
     function createCounter() {
-      if (counterDiv) return;
       counterDiv = document.createElement('div');
-      counterDiv.className = 'experiment-counter';
+      counterDiv.className = 'counter';
       counterDiv.textContent = `Question 0 / ${totalQuestions}`;
       document.body.appendChild(counterDiv);
-      console.log("Counter created and appended to body");
     }
 
     function updateCounter() {
       if (counterDiv) {
         counterDiv.textContent = `Question ${questionsAnswered} / ${totalQuestions}`;
-        console.log(`Counter updated: ${questionsAnswered}/${totalQuestions}`);
-      } else {
-        console.warn("Counter not found when updating");
       }
     }
 
     function incrementCounter() {
       questionsAnswered++;
       updateCounter();
-    }
-
-    // Ensure counter is created after jsPsych display is ready
-    function safeCreateCounter() {
-      if (document.querySelector('.jspsych-display-element')) {
-        createCounter();
-      } else {
-        setTimeout(safeCreateCounter, 100);
-      }
     }
 
     // ==================== AUTO PARTICIPANT ID ====================
@@ -110,21 +93,8 @@
       }).catch(err => console.error("Failed to send data:", err));
     }
 
-    // ==================== ESCAPE HANDLER ====================
-    let jsPsychInstance = null;
-    let experimentAborted = false;
-    function globalEscapeHandler(e) {
-      if (e.key === 'Escape' && !experimentAborted) {
-        e.preventDefault();
-        experimentAborted = true;
-        if (jsPsychInstance) jsPsychInstance.abortExperiment('Aborted by user');
-        const el = document.querySelector('.jspsych-display-element');
-        if (el) el.innerHTML = '<div style="text-align:center; margin-top:50px;"><h2>Experiment ended</h2><p>You have terminated the experiment. Thank you.</p></div>';
-        alert("Experiment ended by pressing ESC.");
-        document.removeEventListener('keydown', globalEscapeHandler);
-      }
-    }
-    document.addEventListener('keydown', globalEscapeHandler);
+    // ==================== ESCAPE HANDLER REMOVED ====================
+    // Participants are instructed to close the browser window to exit.
 
     // ==================== STIMULI DEFINITIONS ====================
     const practiceTrials = [
@@ -282,7 +252,6 @@
         },
         data: { trial_type: 'question' },
         on_finish: (data) => {
-          if (experimentAborted) return;
           let response = data.response === 'c' ? 'NP1' : 'NP2';
           if (keyMapping === 'swapped') response = response === 'NP1' ? 'NP2' : 'NP1';
           const isCorrect = (item.correct !== null) ? (response === item.correct) : null;
@@ -338,12 +307,14 @@
     // ==================== BUILD TIMELINE ====================
     let timeline = [];
 
+    // Consent screen with duration and no ESC mention
     timeline.push({
       type: jsPsychHtmlKeyboardResponse,
-      stimulus: `<div style="width:700px; margin:0 auto;"><h3>CONSENT & WELCOME</h3><p>You are invited to participate in a study on sentence comprehension.</p><p>The task involves reading sentences and answering questions.</p><p>No personal identifying information will be collected.</p><p>You may withdraw at any time by pressing ESC.</p><p>Do you agree to participate?</p><p>Press SPACE to continue. ESC to exit.</p></div>`,
+      stimulus: `<div style="width:700px; margin:0 auto;"><h3>CONSENT & WELCOME</h3><p>You are invited to participate in a study on sentence comprehension.</p><p>The task involves reading sentences and answering questions.</p><p>The experiment will take approximately <strong>10 minutes</strong> to complete.</p><p>No personal identifying information will be collected.</p><p>If you wish to exit at any time, simply close your browser window.</p><p>Do you agree to participate?</p><p>Press SPACE to continue.</p></div>`,
       choices: [' ']
     });
 
+    // Demographics
     timeline.push({
       type: jsPsychSurveyHtmlForm,
       preamble: '<h3>Participant Information</h3>',
@@ -366,6 +337,7 @@
       }
     });
 
+    // Counterbalancing
     timeline.push({
       type: jsPsychCallFunction,
       func: () => {
@@ -373,43 +345,49 @@
       }
     });
 
+    // Instructions
     timeline.push({
       type: jsPsychHtmlKeyboardResponse,
       stimulus: `<div style="font-size:28px; text-align:center; max-width:800px; margin:0 auto;">${getInstructionsText()}</div>`,
       choices: [' ']
     });
 
+    // Practice start
     timeline.push({
       type: jsPsychHtmlKeyboardResponse,
       stimulus: '<div style="font-size:36px; text-align:center;">Practice session<br><br>Press SPACE to begin.</div>',
       choices: [' ']
     });
 
-    // Create counter after this point (when jsPsych display is definitely present)
+    // Create counter element after practice starts
     timeline.push({
       type: jsPsychCallFunction,
       func: () => {
-        safeCreateCounter();
+        createCounter();
       }
     });
 
+    // Practice trials
     for (let i = 0; i < practiceTrials.length; i++) {
       timeline.push(...createTrialComponents(practiceTrials[i], i+1, 'practice'));
       timeline.push(createFeedbackTrial());
       timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div>---</div>', trial_duration: 200, choices: "NO_KEYS", response_ends_trial: false });
     }
 
+    // Practice complete
     timeline.push({
       type: jsPsychHtmlKeyboardResponse,
       stimulus: '<div style="font-size:36px;">Practice complete.<br><br>Press SPACE to start the main experiment.</div>',
       choices: [' ']
     });
 
+    // Main trials
     for (let i = 0; i < mainTrials.length; i++) {
       timeline.push(...createTrialComponents(mainTrials[i], i+1, 'main'));
       timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div>---</div>', trial_duration: 200, choices: "NO_KEYS", response_ends_trial: false });
     }
 
+    // Final screen
     timeline.push({
       type: jsPsychHtmlKeyboardResponse,
       stimulus: '<div style="font-size:48px;">Experiment complete!<br><br>Thank you for participating.<br><br>Your data has been saved automatically.<br><br>You may close this window.</div>',
@@ -417,13 +395,8 @@
     });
 
     // ==================== RUN EXPERIMENT ====================
-    jsPsychInstance = initJsPsych({
-      on_start: () => {
-        // Extra safety: also try to create counter when experiment starts
-        safeCreateCounter();
-      },
+    const jsPsychInstance = initJsPsych({
       on_finish: () => {
-        if (!experimentAborted) document.removeEventListener('keydown', globalEscapeHandler);
         if (counterDiv) counterDiv.remove();
       }
     });
