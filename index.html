@@ -13,10 +13,28 @@
     .jspsych-display-element {
       background-color: lightgray;
       font-family: Arial, sans-serif;
+      position: relative;
     }
     .fixation { font-size: 50px; text-align: center; }
     .feedback-correct { color: green; font-size: 32px; font-weight: bold; text-align: center; margin-top: 40vh; }
     .feedback-incorrect { color: red; font-size: 32px; font-weight: bold; text-align: center; margin-top: 40vh; }
+    /* Robust counter styling */
+    .experiment-counter {
+      position: fixed;
+      top: 15px;
+      right: 20px;
+      background-color: rgba(0,0,0,0.8);
+      color: white;
+      padding: 8px 15px;
+      border-radius: 25px;
+      font-size: 16px;
+      font-weight: bold;
+      font-family: Arial, sans-serif;
+      z-index: 999999;
+      pointer-events: none;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.3);
+    }
   </style>
 </head>
 <body>
@@ -26,6 +44,56 @@
   document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("loading").style.display = "none";
 
+    // ==================== MOBILE DETECTION ====================
+    function isMobileDevice() {
+      const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      return (hasTouch && (window.innerWidth <= 1024 || isMobileUA));
+    }
+
+    if (isMobileDevice()) {
+      alert("This experiment requires a physical keyboard. Please use a laptop or desktop computer.");
+      document.body.innerHTML = '<div style="text-align:center; margin-top:50px;"><h2>Device not supported</h2><p>This experiment requires a computer with a keyboard. Please switch to a laptop or desktop computer.</p></div>';
+      throw new Error("Mobile device detected – experiment aborted");
+    }
+
+    // ==================== SIMPLE TEXT COUNTER (robust) ====================
+    let totalQuestions = 4 + 68; // 4 practice + 68 main
+    let questionsAnswered = 0;
+    let counterDiv = null;
+
+    function createCounter() {
+      if (counterDiv) return;
+      counterDiv = document.createElement('div');
+      counterDiv.className = 'experiment-counter';
+      counterDiv.textContent = `Question 0 / ${totalQuestions}`;
+      document.body.appendChild(counterDiv);
+      console.log("Counter created and appended to body");
+    }
+
+    function updateCounter() {
+      if (counterDiv) {
+        counterDiv.textContent = `Question ${questionsAnswered} / ${totalQuestions}`;
+        console.log(`Counter updated: ${questionsAnswered}/${totalQuestions}`);
+      } else {
+        console.warn("Counter not found when updating");
+      }
+    }
+
+    function incrementCounter() {
+      questionsAnswered++;
+      updateCounter();
+    }
+
+    // Ensure counter is created after jsPsych display is ready
+    function safeCreateCounter() {
+      if (document.querySelector('.jspsych-display-element')) {
+        createCounter();
+      } else {
+        setTimeout(safeCreateCounter, 100);
+      }
+    }
+
     // ==================== AUTO PARTICIPANT ID ====================
     const autoParticipantID = `auto_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
     console.log(`Auto-generated participant ID: ${autoParticipantID}`);
@@ -33,7 +101,6 @@
     // ==================== GOOGLE SHEETS DATA ENDPOINT ====================
     const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxiy2Aord467MBRlvkA0pcFsci_iKBOE6PN-E30afC5rKeK1CkuO8R_XLtWH1gCyOkh6g/exec";
 
-    // Function to send one trial row to Google Sheets
     function sendToGoogleSheets(dataRow) {
       fetch(GOOGLE_SHEETS_URL, {
         method: "POST",
@@ -243,6 +310,7 @@
           Object.assign(data, trialData);
           window.lastResponse = { correct: isCorrect, correctAnswer: item.correct };
           sendToGoogleSheets(trialData);
+          incrementCounter();
         }
       };
       return [fixation, sentence, question];
@@ -317,6 +385,14 @@
       choices: [' ']
     });
 
+    // Create counter after this point (when jsPsych display is definitely present)
+    timeline.push({
+      type: jsPsychCallFunction,
+      func: () => {
+        safeCreateCounter();
+      }
+    });
+
     for (let i = 0; i < practiceTrials.length; i++) {
       timeline.push(...createTrialComponents(practiceTrials[i], i+1, 'practice'));
       timeline.push(createFeedbackTrial());
@@ -334,7 +410,6 @@
       timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div>---</div>', trial_duration: 200, choices: "NO_KEYS", response_ends_trial: false });
     }
 
-    // Final screen – data already sent per trial, just show thank you
     timeline.push({
       type: jsPsychHtmlKeyboardResponse,
       stimulus: '<div style="font-size:48px;">Experiment complete!<br><br>Thank you for participating.<br><br>Your data has been saved automatically.<br><br>You may close this window.</div>',
@@ -343,8 +418,13 @@
 
     // ==================== RUN EXPERIMENT ====================
     jsPsychInstance = initJsPsych({
+      on_start: () => {
+        // Extra safety: also try to create counter when experiment starts
+        safeCreateCounter();
+      },
       on_finish: () => {
         if (!experimentAborted) document.removeEventListener('keydown', globalEscapeHandler);
+        if (counterDiv) counterDiv.remove();
       }
     });
     window.jsPsych = jsPsychInstance;
