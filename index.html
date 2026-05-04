@@ -10,39 +10,14 @@
   <script src="https://unpkg.com/@jspsych/plugin-instructions@1.1.3"></script>
   <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet">
   <style>
-    .jspsych-display-element {
-      background-color: lightgray;
-      font-family: Arial, sans-serif;
-      position: relative;
-    }
+    .jspsych-display-element { background-color: lightgray; font-family: Arial, sans-serif; position: relative; }
     .fixation { font-size: 50px; text-align: center; }
     .feedback-correct { color: green; font-size: 32px; font-weight: bold; text-align: center; margin-top: 40vh; }
     .feedback-incorrect { color: red; font-size: 32px; font-weight: bold; text-align: center; margin-top: 40vh; }
-    .counter {
-      position: fixed;
-      top: 10px;
-      right: 20px;
-      background-color: rgba(0,0,0,0.7);
-      color: white;
-      padding: 8px 12px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: bold;
-      font-family: Arial, sans-serif;
-      z-index: 10000;
-      pointer-events: none;
-    }
-    .lang-group {
-      margin: 10px 0;
-    }
-    .lang-group label {
-      margin-right: 15px;
-      white-space: nowrap;
-    }
-    .other-specify {
-      margin-left: 25px;
-      margin-top: 5px;
-    }
+    .counter { position: fixed; top: 10px; right: 20px; background-color: rgba(0,0,0,0.7); color: white; padding: 8px 12px; border-radius: 20px; font-size: 14px; font-weight: bold; z-index: 10000; pointer-events: none; }
+    .lang-group { margin: 10px 0; }
+    .lang-group label { margin-right: 15px; white-space: nowrap; }
+    .other-specify { margin-left: 25px; margin-top: 5px; }
   </style>
 </head>
 <body>
@@ -58,7 +33,6 @@
       const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       return (hasTouch && (window.innerWidth <= 1024 || isMobileUA));
     }
-
     if (isMobileDevice()) {
       alert("This experiment requires a physical keyboard. Please use a laptop or desktop computer.");
       document.body.innerHTML = '<div style="text-align:center; margin-top:50px;"><h2>Device not supported</h2><p>This experiment requires a computer with a keyboard. Please switch to a laptop or desktop computer.</p></div>';
@@ -66,36 +40,24 @@
     }
 
     // ==================== TEXT COUNTER ====================
-    const totalQuestions = 4 + 68; // 4 practice + 68 main
+    const totalQuestions = 4 + 68;
     let questionsAnswered = 0;
     let counterDiv = null;
-
     function createCounter() {
       counterDiv = document.createElement('div');
       counterDiv.className = 'counter';
       counterDiv.textContent = `Question 0 / ${totalQuestions}`;
       document.body.appendChild(counterDiv);
     }
-
-    function updateCounter() {
-      if (counterDiv) {
-        counterDiv.textContent = `Question ${questionsAnswered} / ${totalQuestions}`;
-      }
-    }
-
-    function incrementCounter() {
-      questionsAnswered++;
-      updateCounter();
-    }
+    function updateCounter() { if (counterDiv) counterDiv.textContent = `Question ${questionsAnswered} / ${totalQuestions}`; }
+    function incrementCounter() { questionsAnswered++; updateCounter(); }
 
     // ==================== AUTO PARTICIPANT ID ====================
     const autoParticipantID = `auto_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
     console.log(`Auto-generated participant ID: ${autoParticipantID}`);
 
     // ==================== GOOGLE SHEETS ENDPOINT ====================
-    // Replace with your dynamic headers Web App URL after updating Apps Script
     const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxiy2Aord467MBRlvkA0pcFsci_iKBOE6PN-E30afC5rKeK1CkuO8R_XLtWH1gCyOkh6g/exec";
-
     function sendToGoogleSheets(dataRow) {
       fetch(GOOGLE_SHEETS_URL, {
         method: "POST",
@@ -105,7 +67,7 @@
       }).catch(err => console.error("Failed to send data:", err));
     }
 
-    // ==================== STIMULI DEFINITIONS ====================
+    // ==================== STIMULI ====================
     const practiceTrials = [
       { sentence: "The manager of the employees who was reading a book stayed late.", question: "Who was reading a book? FIRST noun (manager) or SECOND noun (employees)?", correct: "NP1" },
       { sentence: "The supervisor of the workers who were arguing in the hallway called security.", question: "Who was arguing in the hallway? FIRST noun (supervisor) or SECOND noun (workers)?", correct: "NP2" },
@@ -232,32 +194,15 @@
     }
 
     function createTrialComponents(item, trialNum, blockName) {
-      const fixation = {
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: '<div class="fixation">+</div>',
-        trial_duration: 500,
-        choices: "NO_KEYS",
-        response_ends_trial: false,
-        data: { trial_type: 'fixation' }
-      };
-      const sentence = {
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: `<div style="font-size:36px; text-align:center;">${item.sentence}</div>`,
-        trial_duration: 5000,
-        choices: "NO_KEYS",
-        response_ends_trial: false,
-        data: { trial_type: 'sentence', reading_time: 5000 }
-      };
+      const fixation = { type: jsPsychHtmlKeyboardResponse, stimulus: '<div class="fixation">+</div>', trial_duration: 500, choices: "NO_KEYS", response_ends_trial: false, data: { trial_type: 'fixation' } };
+      const sentence = { type: jsPsychHtmlKeyboardResponse, stimulus: `<div style="font-size:36px; text-align:center;">${item.sentence}</div>`, trial_duration: 5000, choices: "NO_KEYS", response_ends_trial: false, data: { trial_type: 'sentence', reading_time: 5000 } };
       const question = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: `<div style="font-size:32px; text-align:center;">${item.question}</div>`,
         choices: ['c', 'm'],
         prompt: () => {
-          if (keyMapping === 'original') {
-            return '<p style="font-size:24px;">Press <strong>C</strong> for FIRST noun (NP1) &nbsp;&nbsp; Press <strong>M</strong> for SECOND noun (NP2)</p>';
-          } else {
-            return '<p style="font-size:24px;">Press <strong>C</strong> for SECOND noun (NP2) &nbsp;&nbsp; Press <strong>M</strong> for FIRST noun (NP1)</p>';
-          }
+          if (keyMapping === 'original') return '<p style="font-size:24px;">Press <strong>C</strong> for FIRST noun (NP1) &nbsp;&nbsp; Press <strong>M</strong> for SECOND noun (NP2)</p>';
+          else return '<p style="font-size:24px;">Press <strong>C</strong> for SECOND noun (NP2) &nbsp;&nbsp; Press <strong>M</strong> for FIRST noun (NP1)</p>';
         },
         data: { trial_type: 'question' },
         on_finish: (data) => {
@@ -267,25 +212,11 @@
           const allData = jsPsych.data.get().values();
           const demo = allData.find(d => d.participant) || {};
           const trialData = {
-            participant: demo.participant || '',
-            auto_participant_id: autoParticipantID,
-            age: demo.age || '',
-            gender: demo.gender || '',
-            education: demo.education || '',
-            native_language: demo.native_language || '',
-            handedness: demo.handedness || '',
-            other_languages: demo.other_languages || '',
-            list_assignment: listAssignment,
-            key_mapping: keyMapping,
-            block: blockName,
-            trial_num: trialNum,
-            sentence: item.sentence,
-            question: item.question,
-            correct_answer: item.correct,
-            response: response,
-            accuracy: isCorrect,
-            reading_time: 5000,
-            rt_from_question: data.rt
+            participant: demo.participant || '', auto_participant_id: autoParticipantID, age: demo.age || '', gender: demo.gender || '',
+            education: demo.education || '', handedness: demo.handedness || '', other_languages: demo.other_languages || '',
+            list_assignment: listAssignment, key_mapping: keyMapping, block: blockName, trial_num: trialNum,
+            sentence: item.sentence, question: item.question, correct_answer: item.correct, response: response, accuracy: isCorrect,
+            reading_time: 5000, rt_from_question: data.rt
           };
           Object.assign(data, trialData);
           window.lastResponse = { correct: isCorrect, correctAnswer: item.correct };
@@ -299,33 +230,22 @@
     function createFeedbackTrial() {
       return {
         type: jsPsychHtmlKeyboardResponse,
-        stimulus: () => {
-          const last = window.lastResponse;
-          if (!last) return '<div>---</div>';
-          if (last.correct) {
-            return '<div class="feedback-correct">✓ Correct!</div>';
-          } else {
-            return `<div class="feedback-incorrect">✗ Incorrect. Correct answer: ${last.correctAnswer}.</div>`;
-          }
-        },
-        trial_duration: 1500,
-        choices: "NO_KEYS",
-        response_ends_trial: false,
-        data: { trial_type: 'feedback' }
+        stimulus: () => { const last = window.lastResponse; if (!last) return '<div>---</div>'; return last.correct ? '<div class="feedback-correct">✓ Correct!</div>' : `<div class="feedback-incorrect">✗ Incorrect. Correct answer: ${last.correctAnswer}.</div>`; },
+        trial_duration: 1500, choices: "NO_KEYS", response_ends_trial: false, data: { trial_type: 'feedback' }
       };
     }
 
     // ==================== BUILD TIMELINE ====================
     let timeline = [];
 
-    // Consent screen with duration
+    // Consent
     timeline.push({
       type: jsPsychHtmlKeyboardResponse,
       stimulus: `<div style="width:700px; margin:0 auto;"><h3>CONSENT & WELCOME</h3><p>You are invited to participate in a study on sentence comprehension.</p><p>The task involves reading sentences and answering questions.</p><p>The experiment will take approximately <strong>10 minutes</strong> to complete.</p><p>No personal identifying information will be collected.</p><p>If you wish to exit at any time, simply close your browser window.</p><p>Do you agree to participate?</p><p>Press SPACE to continue.</p></div>`,
       choices: [' ']
     });
 
-    // Demographics with updated fields
+    // Demographics with all fields
     timeline.push({
       type: jsPsychSurveyHtmlForm,
       preamble: '<h3>Participant Information</h3>',
@@ -333,15 +253,8 @@
         <label>Your Participant ID (you can type any code): <input type="text" name="participant" required></label><br><br>
         <label>Age: <input type="number" name="age" required></label><br><br>
         <label>Gender: <select name="gender" required><option>Female</option><option>Male</option><option>Non-binary</option></select></label><br><br>
-        <label>Highest academic level: <input type="text" name="education" required placeholder="e.g., Bachelor, Master, PhD, High school"></label><br><br>
-        <label>Handedness: 
-          <select name="handedness" required>
-            <option value="">--Select--</option>
-            <option>Right-handed</option>
-            <option>Left-handed</option>
-            <option>Ambidextrous</option>
-          </select>
-        </label><br><br>
+        <label>Highest academic level: <input type="text" name="education" required></label><br><br>
+        <label>Handedness: <select name="handedness" required><option value="">--Select--</option><option>Right-handed</option><option>Left-handed</option><option>Ambidextrous</option></select></label><br><br>
         <label>Other languages you speak (select all that apply):</label><br>
         <div class="lang-group">
           <label><input type="checkbox" name="lang_english" value="English"> English</label>
@@ -357,20 +270,16 @@
           <label>Please specify: <input type="text" name="lang_other_text" placeholder="e.g., Italian, Portuguese"></label>
         </div>
         <script>
-          // Show/hide other textbox when "Other" checkbox is toggled
           document.addEventListener('DOMContentLoaded', function() {
             const otherCheck = document.querySelector('input[name="lang_other_check"]');
             const otherDiv = document.getElementById('otherSpecifyDiv');
             if (otherCheck) {
-              otherCheck.addEventListener('change', function() {
-                otherDiv.style.display = this.checked ? 'block' : 'none';
-              });
+              otherCheck.addEventListener('change', function() { otherDiv.style.display = this.checked ? 'block' : 'none'; });
             }
           });
-        </script>
+        <\/script>
       `,
       on_finish: (data) => {
-        // Combine selected languages into a comma-separated string
         let languages = [];
         if (data.response.lang_english) languages.push('English');
         if (data.response.lang_amazigh) languages.push('Amazigh');
@@ -379,54 +288,30 @@
         if (data.response.lang_french) languages.push('French');
         if (data.response.lang_spanish) languages.push('Spanish');
         if (data.response.lang_german) languages.push('German');
-        if (data.response.lang_other_check && data.response.lang_other_text) {
-          languages.push(`Other: ${data.response.lang_other_text}`);
-        } else if (data.response.lang_other_check) {
-          languages.push('Other (unspecified)');
+        if (data.response.lang_other_check) {
+          if (data.response.lang_other_text) languages.push(`Other: ${data.response.lang_other_text}`);
+          else languages.push('Other (unspecified)');
         }
         const otherLanguages = languages.join(', ');
-        
         jsPsych.data.addProperties({
-          participant: data.response.participant,
-          auto_participant_id: autoParticipantID,
-          age: data.response.age,
-          gender: data.response.gender,
-          education: data.response.education,
-          handedness: data.response.handedness,
-          other_languages: otherLanguages
+          participant: data.response.participant, auto_participant_id: autoParticipantID,
+          age: data.response.age, gender: data.response.gender, education: data.response.education,
+          handedness: data.response.handedness, other_languages: otherLanguages
         });
       }
     });
 
-    // Counterbalancing
-    timeline.push({
-      type: jsPsychCallFunction,
-      func: () => {
-        jsPsych.data.addProperties({ list_assignment: listAssignment, key_mapping: keyMapping });
-      }
-    });
+    // Counterbalancing record
+    timeline.push({ type: jsPsychCallFunction, func: () => { jsPsych.data.addProperties({ list_assignment: listAssignment, key_mapping: keyMapping }); } });
 
     // Instructions
-    timeline.push({
-      type: jsPsychHtmlKeyboardResponse,
-      stimulus: `<div style="font-size:28px; text-align:center; max-width:800px; margin:0 auto;">${getInstructionsText()}</div>`,
-      choices: [' ']
-    });
+    timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: `<div style="font-size:28px; text-align:center; max-width:800px; margin:0 auto;">${getInstructionsText()}</div>`, choices: [' '] });
 
     // Practice start
-    timeline.push({
-      type: jsPsychHtmlKeyboardResponse,
-      stimulus: '<div style="font-size:36px; text-align:center;">Practice session<br><br>Press SPACE to begin.</div>',
-      choices: [' ']
-    });
+    timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div style="font-size:36px; text-align:center;">Practice session<br><br>Press SPACE to begin.</div>', choices: [' '] });
 
     // Create counter
-    timeline.push({
-      type: jsPsychCallFunction,
-      func: () => {
-        createCounter();
-      }
-    });
+    timeline.push({ type: jsPsychCallFunction, func: () => { createCounter(); } });
 
     // Practice trials
     for (let i = 0; i < practiceTrials.length; i++) {
@@ -436,11 +321,7 @@
     }
 
     // Practice complete
-    timeline.push({
-      type: jsPsychHtmlKeyboardResponse,
-      stimulus: '<div style="font-size:36px;">Practice complete.<br><br>Press SPACE to start the main experiment.</div>',
-      choices: [' ']
-    });
+    timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div style="font-size:36px;">Practice complete.<br><br>Press SPACE to start the main experiment.</div>', choices: [' '] });
 
     // Main trials
     for (let i = 0; i < mainTrials.length; i++) {
@@ -448,19 +329,11 @@
       timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div>---</div>', trial_duration: 200, choices: "NO_KEYS", response_ends_trial: false });
     }
 
-    // Final screen
-    timeline.push({
-      type: jsPsychHtmlKeyboardResponse,
-      stimulus: '<div style="font-size:48px;">Experiment complete!<br><br>Thank you for participating.<br><br>Your data has been saved automatically.<br><br>You may close this window.</div>',
-      choices: [' ']
-    });
+    // End screen
+    timeline.push({ type: jsPsychHtmlKeyboardResponse, stimulus: '<div style="font-size:48px;">Experiment complete!<br><br>Thank you for participating.<br><br>Your data has been saved automatically.<br><br>You may close this window.</div>', choices: [' '] });
 
     // ==================== RUN EXPERIMENT ====================
-    const jsPsychInstance = initJsPsych({
-      on_finish: () => {
-        if (counterDiv) counterDiv.remove();
-      }
-    });
+    const jsPsychInstance = initJsPsych({ on_finish: () => { if (counterDiv) counterDiv.remove(); } });
     window.jsPsych = jsPsychInstance;
     jsPsychInstance.run(timeline);
     console.log(`Experiment started. Auto ID: ${autoParticipantID}`);
